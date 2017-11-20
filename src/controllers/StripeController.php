@@ -61,6 +61,7 @@ class StripeController extends Controller
 
     /**
      * @param integer $status
+     * @param \Stripe\Charge $charge
      * @return mixed
      */
     public function actionSuccessful($status = 0, $charge = null )
