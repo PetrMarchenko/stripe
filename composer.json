@@ -1,0 +1,24 @@
+{
+    "name": "marchenko/yii2-stripe",
+    "description": "Package",
+    "type": "yii2-extension",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "PetrMarchenko"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "~2.0.5",
+        "stripe/stripe-php": "*"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": { "shark\\": "src" }
+    },
+    "extra": {
+        "bootstrap": "shark\\Bootstrap"
+    }
+}
