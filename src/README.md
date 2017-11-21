@@ -11,8 +11,8 @@ php yii migrate --migrationPath=@shark/migrations --interactive=0
 
 Examples:
 --------------------------------------------------------------------------
+1. You can create button.
 ```
-1. You can create button and redefine fields:
         currency = 'usd';
         amount = 2000;
         description = 'Example charge';
@@ -30,8 +30,14 @@ Examples:
         ])
     ?>
 ```
+
+2. You can create your controller
+
 ```
-2. You can create your controller, but use your payment method:
+2.1 Use payment or refund method:
+    /**
+     * @inheritdoc
+     */
     public function actions()
     {
         return [
@@ -39,7 +45,16 @@ Examples:
                 'class' => 'shark\action\PayAction',
                 'successCallback' => [
                     [
-                        'callback_url' => '/example/stripe/successful',
+                        'callback_url' => 'stripe/successful',
+                        'setApiKey' => Yii::$app->params['stripe']['secretKey']
+                    ]
+                ],
+            ],
+            'refund' => [
+                'class' => 'shark\action\RefundAction',
+                'successCallback' => [
+                    [
+                        'callback_url' => 'stripe/successful',
                         'setApiKey' => Yii::$app->params['stripe']['secretKey']
                     ]
                 ],
@@ -51,19 +66,30 @@ Examples:
     
     /**
      * @param integer $status
-     * @param \Stripe\Charge $charge
+     * @param integer $id
      * @return mixed
      */
-    public function actionSuccessful($status = 0, $charge = null )
+    public function actionSuccessful($status = 0, $id = 0)
     {
-        if ($status) {
-            $messages = Yii::t('app', 'Payment complete.');
-        } else {
-            $messages = Yii::t('app', 'Payment failed');
+        $messages = 'Please, try again later';
+
+        switch ($status) {
+            case StripeModel::STATUS_SUCCESS:
+                $messages = 'Payment complete.';
+                break;
+            case StripeModel::STATUS_ERROR_STRIPE_NOT_PAY:
+            case StripeModel::STATUS_ERROR_STRIPE_NOT_REFUND:
+            case StripeModel::STATUS_ERROR_APP:
+            case StripeModel::STATUS_ERROR_STRIPE:
+                $messages = 'Payment failed';
+                break;
         }
 
-        return $this->render('pay', ['messages' => $messages]);
-    }
-            
-
+        return $this->render('successful',
+            [
+                'messages' => $messages,
+                'stripeModel' => $stripeModel = StripeModel::findById($id)
+            ]
+        );
+    }            
 ```
