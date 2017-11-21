@@ -70,11 +70,13 @@ class StripeController extends Controller
 
     /**
      * @param integer $status
+     * @param integer $id
      * @return mixed
      */
-    public function actionSuccessful($status = 0)
+    public function actionSuccessful($status = 0, $id = 0)
     {
         $messages = 'Please, try again later';
+
         switch ($status) {
             case StripeModel::STATUS_SUCCESS:
                 $messages = 'Payment complete.';
@@ -87,6 +89,11 @@ class StripeController extends Controller
                 break;
         }
 
-        return $this->render('pay', ['messages' => $messages]);
+        return $this->render('pay',
+            [
+                'messages' => $messages,
+                'stripeModel' => $stripeModel = StripeModel::findById($id)
+            ]
+        );
     }
 }

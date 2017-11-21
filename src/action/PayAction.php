@@ -7,6 +7,7 @@ use yii\base\Action;
 use Stripe;
 use shark\models\forms\StripeForm;
 use shark\models\Stripe as StripeModel;
+use shark\models\StripeInfo;
 
 class PayAction extends Action
 {
@@ -14,7 +15,7 @@ class PayAction extends Action
 
     public $config = [
         'callback_url' => '/successful',
-        'setApiKey' => null, //sk_test_TpDfy0lzGjN0fOy2og38jdHm
+        'setApiKey' => null,
     ];
 
     public function beforeRun()
@@ -33,12 +34,10 @@ class PayAction extends Action
     public function run()
     {
         $status = StripeModel::STATUS_ERROR_APP;
-        $charge = null;
         $stripeForm = new StripeForm();
         try {
 
             if ($stripeForm->load(Yii::$app->request->post()) && $stripeForm->validate()) {
-
                 if (null == $this->config['setApiKey']) {
                     throw new \Exception('Token is failed');
                 }
@@ -52,9 +51,19 @@ class PayAction extends Action
                     "source" => $stripeForm->source,
                 ]);
 
+                $status = ($charge && 'succeeded' == $charge->status)
+                    ? StripeModel::STATUS_SUCCESS
+                    : StripeModel::STATUS_ERROR_STRIPE_NOT_PAY;
+
                 $stripeModel = new StripeModel();
-                $stripeModel->log($stripeForm, $charge);
-                $status = $stripeModel->status;
+                $stripeModel->setAttributes([
+                    'amount' => $charge->amount,
+                    'currency' => $charge->currency,
+                    'status' => $charge->status,
+                    'stripe_id' => $charge->id,
+                    'type' => StripeModel::TYPE_PAY
+                ]);
+                $stripeModel->save();
             }
 
         } catch(Stripe\Error\Card $e) {
@@ -65,7 +74,8 @@ class PayAction extends Action
 
         return $this->controller->redirect([
                 $this->config['callback_url'],
-                'status' => $status
+                'status' => $status,
+                'id' => isset($stripeModel) ? $stripeModel->id : 0
             ]);
     }
 }

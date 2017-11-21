@@ -43,14 +43,24 @@ class RefundAction extends Action
 
             Stripe\Stripe::setApiKey($this->config['setApiKey']);
 
-            $charge = Stripe\Refund::create(array(
+            $refund = Stripe\Refund::create(array(
                 "charge" => $stripeModel->stripe_id,
                 "amount" => $stripeModel->amount,
             ));
 
-            $status = ($charge && "succeeded" == $charge->status)
-                ? Stripe::STATUS_SUCCESS
-                : Stripe::STATUS_ERROR_STRIPE_NOT_REFUND;
+            $status = ($refund && 'succeeded' == $refund->status)
+                ? StripeModel::STATUS_SUCCESS
+                : StripeModel::STATUS_ERROR_STRIPE_NOT_REFUND;
+
+            $stripeModel = new StripeModel();
+            $stripeModel->setAttributes([
+                'amount' => $refund->amount,
+                'currency' => $refund->currency,
+                'status' => $refund->status,
+                'stripe_id' => $refund->id,
+                'type' => StripeModel::TYPE_REFUND
+            ]);
+            $stripeModel->save();
 
         } catch(Stripe\Error\Card $e) {
             $status = StripeModel::STATUS_ERROR_STRIPE;
@@ -60,7 +70,8 @@ class RefundAction extends Action
 
         return $this->controller->redirect([
             $this->config['callback_url'],
-            'status' => $status
+            'status' => $status,
+            'id' => isset($stripeModel) ? $stripeModel->id : 0
         ]);
     }
 }

@@ -5,6 +5,7 @@ use Yii;
 use yii\db\ActiveRecord;
 use shark\models\forms\StripeForm;
 use Stripe\Charge;
+use Stripe\Refund;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -12,47 +13,37 @@ use yii\behaviors\TimestampBehavior;
  *
  * @property integer $id
  * @property string $currency
- * @property string $description
- * @property string $source
  * @property string $updated_at
+ * @property string $status
  * @property integer $amount
- * @property integer $user_id
- * @property integer $status
  * @property integer $stripe_id
+ * @property integer $type
  */
 class Stripe extends ActiveRecord
 {
+    const STATUS_SUCCESS = 1;
+    const STATUS_ERROR_APP = 0;
     const STATUS_ERROR_STRIPE = -1;
     const STATUS_ERROR_STRIPE_NOT_PAY = -2;
     const STATUS_ERROR_STRIPE_NOT_REFUND = -3;
-    const STATUS_ERROR_APP = 0;
-    const STATUS_SUCCESS = 1;
 
-    protected static $message = [
-        Stripe::STATUS_SUCCESS => 'Done',
-        Stripe::STATUS_ERROR_STRIPE_NOT_PAY => 'Not pay',
-        Stripe::STATUS_ERROR_APP => 'App error',
-        Stripe::STATUS_ERROR_STRIPE => 'Stripe error'
+    const TYPE_REFUND = 2;
+    const TYPE_PAY = 1;
+
+    protected static $title_type = [
+        Stripe::TYPE_REFUND => 'REFUND',
+        Stripe::TYPE_PAY => 'PAY',
     ];
 
-    public static function getMessage($key)
+    public function getType()
     {
-
-        return isset(self::$message[$key]) ? self::$message[$key] : '';
-    }
-
-    public static function allMessage()
-    {
-
-        return self::$message;
+        return isset(self::$title_type[$this->type]) ? self::$title_type[$this->type] : '';
     }
 
     public function rules()
     {
         return [
-            [['amount', 'source', 'description', 'stripe_id'], 'required'],
-            [['currency', 'description'], 'string'],
-            [['user_id'], 'integer'],
+            [['amount', 'stripe_id', 'currency', 'status',  'type'], 'required'],
         ];
     }
 
@@ -70,18 +61,6 @@ class Stripe extends ActiveRecord
                 'value' => date('Y-m-d H:i:s'),
             ],
         ];
-    }
-
-    public function log(StripeForm $stripeForm, Charge $charge)
-    {
-        $this->currency = $stripeForm->currency;
-        $this->description = $stripeForm->description;
-        $this->source = $stripeForm->source;
-        $this->amount = $stripeForm->amount;
-        $this->user_id = $stripeForm->user_id;
-        $this->status = ($charge->paid) ? Stripe::STATUS_SUCCESS : Stripe::STATUS_ERROR_STRIPE_NOT_PAY;
-        $this->stripe_id = $charge->id;
-        $this->save();
     }
 
     /**

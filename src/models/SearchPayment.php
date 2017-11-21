@@ -19,12 +19,7 @@ class SearchPayment extends Stripe
         return [
             [
                 [
-                    'id',
-                    'amount',
-                    'currency',
-                    'status',
-                    'description',
-                    'updated_at',
+                    'updated_at'
                 ],
                 'safe',
             ],
@@ -79,16 +74,7 @@ class SearchPayment extends Stripe
             return $dataProvider;
         }
 
-        // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-        ]);
-
-        $query->andFilterWhere(['like', 'id', $this->id])
-            ->andFilterWhere(['like', 'amount', $this->amount])
-            ->andFilterWhere(['like', 'currency', $this->currency])
-            ->andFilterWhere(['like', 'status', $this->status])
-            ->andFilterWhere(['like', 'updated_at', $this->updated_at]);
+        $query->andFilterWhere(['like', 'updated_at', $this->updated_at]);
 
         return $dataProvider;
     }

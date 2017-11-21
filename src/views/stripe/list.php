@@ -23,40 +23,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'id',
             ],
             [
-                'attribute' => 'amount',
+                'label' => 'Amount',
+                'value' => 'amount',
             ],
             [
-                'attribute' => 'currency',
+                'label' => 'Currency',
+                'value' => 'currency',
             ],
             [
-                'attribute' => 'status',
-                'headerOptions' => ['width' => '120'],
-                'content' => function ($model) {
-                    switch ($model->status) {
-                        case Stripe::STATUS_SUCCESS:
-                            $label = 'success';
-                            break;
-                        case Stripe::STATUS_ERROR_APP:
-                        case Stripe::STATUS_ERROR_STRIPE_NOT_PAY:
-                        case Stripe::STATUS_ERROR_STRIPE:
-                            $label = "danger";
-                            break;
-                        default:
-                            $label = "default";
-                    }
-
-                    $status = Stripe::getMessage($model->status);
-
-                    return "<span class='visible-md-block visible-xs-block
-                        visible-sm-block visible-lg-block label label-{$label}'>{$status}</span>";
+                'label' => 'Status',
+                'value' => 'status',
+            ],
+            [
+                'label' => 'Type',
+                'value' => function ($model) {
+                    return $model->getType();
                 },
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'status',
-                    Stripe::allMessage()
-                    ,
-                    ['prompt' => Yii::t('app', 'All'), 'class' => 'form-control']
-                ),
             ],
             [
                 'attribute' => 'updated_at',
