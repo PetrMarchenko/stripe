@@ -11,7 +11,7 @@ class m171117_162600_stripe extends Migration
             'amount' => $this->integer()->notNull(),
             'user_id' => $this->integer(),
             'status' => $this->integer()->notNull(),
-            'stripe_id' => $this->integer()->notNull(),
+            'stripe_id' => $this->string(255)->notNull(),
             'currency' => $this->string(255)->notNull(),
             'description' => $this->string(255)->notNull(),
             'source' => $this->string(255)->notNull(),

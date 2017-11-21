@@ -24,6 +24,7 @@ class Stripe extends ActiveRecord
 {
     const STATUS_ERROR_STRIPE = -1;
     const STATUS_ERROR_STRIPE_NOT_PAY = -2;
+    const STATUS_ERROR_STRIPE_NOT_REFUND = -3;
     const STATUS_ERROR_APP = 0;
     const STATUS_SUCCESS = 1;
 
@@ -49,7 +50,7 @@ class Stripe extends ActiveRecord
     public function rules()
     {
         return [
-            [['amount', 'source', 'description'], 'required'],
+            [['amount', 'source', 'description', 'stripe_id'], 'required'],
             [['currency', 'description'], 'string'],
             [['user_id'], 'integer'],
         ];
@@ -81,5 +82,16 @@ class Stripe extends ActiveRecord
         $this->status = ($charge->paid) ? Stripe::STATUS_SUCCESS : Stripe::STATUS_ERROR_STRIPE_NOT_PAY;
         $this->stripe_id = $charge->id;
         $this->save();
+    }
+
+    /**
+     * Find page by id
+     *
+     * @param $id
+     * @return $this|null
+     */
+    public static function findById($id)
+    {
+        return static::findOne(['id' => $id]);
     }
 }

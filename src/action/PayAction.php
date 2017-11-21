@@ -65,8 +65,7 @@ class PayAction extends Action
 
         return $this->controller->redirect([
                 $this->config['callback_url'],
-                'status' => $status,
-                'charge' => $charge
+                'status' => $status
             ]);
     }
 }

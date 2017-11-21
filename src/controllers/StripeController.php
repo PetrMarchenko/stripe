@@ -6,6 +6,7 @@ use Yii;
 use yii\web\Controller;
 use shark\StripeAsset;
 use shark\models\SearchPayment;
+use shark\models\Stripe as StripeModel;
 
 
 /**
@@ -18,7 +19,6 @@ class StripeController extends Controller
      */
     public function actionIndex()
     {
-
         StripeAsset::register($this->view);
         return $this->render('index');
     }
@@ -55,21 +55,36 @@ class StripeController extends Controller
                     ]
                 ],
             ],
+            'refund' => [
+                'class' => 'shark\action\RefundAction',
+                'successCallback' => [
+                    [
+                        'callback_url' => 'stripe/successful',
+                        'setApiKey' => Yii::$app->params['stripe']['secretKey']
+                    ]
+                ],
+            ],
         ];
     }
 
 
     /**
      * @param integer $status
-     * @param \Stripe\Charge $charge
      * @return mixed
      */
-    public function actionSuccessful($status = 0, $charge = null )
+    public function actionSuccessful($status = 0)
     {
-        if ($status) {
-            $messages = Yii::t('app', 'Payment complete.');
-        } else {
-            $messages = Yii::t('app', 'Payment failed');
+        $messages = 'Please, try again later';
+        switch ($status) {
+            case StripeModel::STATUS_SUCCESS:
+                $messages = 'Payment complete.';
+                break;
+            case StripeModel::STATUS_ERROR_STRIPE_NOT_PAY:
+            case StripeModel::STATUS_ERROR_STRIPE_NOT_REFUND:
+            case StripeModel::STATUS_ERROR_APP:
+            case StripeModel::STATUS_ERROR_STRIPE:
+                $messages = 'Payment failed';
+                break;
         }
 
         return $this->render('pay', ['messages' => $messages]);
