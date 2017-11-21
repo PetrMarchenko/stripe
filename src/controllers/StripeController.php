@@ -89,7 +89,7 @@ class StripeController extends Controller
                 break;
         }
 
-        return $this->render('pay',
+        return $this->render('successful',
             [
                 'messages' => $messages,
                 'stripeModel' => $stripeModel = StripeModel::findById($id)
